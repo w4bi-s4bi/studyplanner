@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Study Command">
+<meta name="theme-color" content="#000000">
+<title>Study Command</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --surface: #0d0d0d;
+    --surface2: #131313;
+    --surface3: #181818;
+    --border: #1e1e1e;
+    --border2: #2a2a2a;
+    --text: #f0f0f0;
+    --muted: #555;
+    --dimmed: #2e2e2e;
+    --offwhite: #999;
+
+    --math: #e8455a;
+    --math-dim: #1a0508;
+    --math-glow: rgba(232,69,90,0.15);
+    --math-mid: #5a1520;
+
+    --biz: #4a9fd8;
+    --biz-dim: #071624;
+    --biz-glow: rgba(74,159,216,0.15);
+    --biz-mid: #1a4a70;
+
+    --eco: #3dba7e;
+    --eco-dim: #071a10;
+    --eco-glow: rgba(61,186,126,0.15);
+    --eco-mid: #1a5a38;
+
+    --radius: 6px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html { background: var(--bg); }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border2);
+    padding: calc(var(--safe-top) + 14px) 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar-left h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+  .topbar-left p {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .topbar-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+  .pills {
+    display: flex;
+    gap: 6px;
+  }
+  .pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .pill.m { background: var(--math-dim); color: var(--math); border-color: var(--math-mid); }
+  .pill.b { background: var(--biz-dim);  color: var(--biz);  border-color: var(--biz-mid); }
+  .pill.e { background: var(--eco-dim);  color: var(--eco);  border-color: var(--eco-mid); }
+
+  /* ── NAV TABS ── */
+  .nav {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 78px;
+    z-index: 99;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: 14px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--math);
+  }
+  .nav-btn:hover { color: var(--offwhite); }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 24px 20px calc(var(--safe-bottom) + 32px);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── FOCUS BANNER ── */
+  .focus-banner {
+    background: linear-gradient(90deg, rgba(232,69,90,0.08) 0%, transparent 80%);
+    border: 1px solid rgba(232,69,90,0.2);
+    border-left: 3px solid var(--math);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .focus-banner .icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .focus-banner p { font-size: 12.5px; line-height: 1.6; color: #ccc; }
+  .focus-banner strong { color: var(--math); }
+
+  /* ── SECTION LABEL ── */
+  .sec-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .sec-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-overview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .prog-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prog-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .prog-card.m::before { background: var(--math); }
+  .prog-card.b::before { background: var(--biz); }
+  .prog-card.e::before { background: var(--eco); }
+  .prog-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .prog-fraction {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .prog-card.m .prog-fraction { color: var(--math); }
+  .prog-card.b .prog-fraction { color: var(--biz); }
+  .prog-card.e .prog-fraction { color: var(--eco); }
+  .prog-bar-wrap {
+    margin-top: 8px;
+    height: 3px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .prog-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .prog-card.m .prog-bar-fill { background: var(--math); }
+  .prog-card.b .prog-bar-fill { background: var(--biz); }
+  .prog-card.e .prog-bar-fill { background: var(--eco); }
+  .prog-sub {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── WEEK CARDS ── */
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .week-card.completed { border-color: #1f3a1f; }
+  .week-card.cram { background: #0a0306; border-color: var(--math-mid); }
+
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  .week-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--math);
+  }
+  .week-card.completed .week-header::before { background: #3a8a3a; }
+
+  .week-header-left { padding-left: 10px; }
+  .week-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--math);
+    line-height: 1;
+  }
+  .week-card.completed .week-num { color: #3a8a3a; }
+  .week-dates {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .week-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .week-progress-ring {
+    position: relative;
+    width: 36px;
+    height: 36px;
+  }
+  .week-progress-ring svg {
+    transform: rotate(-90deg);
+  }
+  .ring-bg { fill: none; stroke: var(--border2); stroke-width: 2.5; }
+  .ring-fill { fill: none; stroke: var(--math); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+  .week-card.completed .ring-fill { stroke: #3a8a3a; }
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--offwhite);
+  }
+  .chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+  .week-card.open .chevron { transform: rotate(180deg); }
+
+  .week-body {
+    display: none;
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .week-card.open .week-body { display: block; }
+
+  /* ── GOAL ITEM ── */
+  .goal-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-item.done { opacity: 0.45; }
+
+  .goal-check {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--border2);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    background: var(--surface2);
+  }
+  .goal-item.done .goal-check {
+    background: #1f3a1f;
+    border-color: #3a8a3a;
+  }
+  .goal-check-inner {
+    opacity: 0;
+    color: #5aba5a;
+    font-size: 12px;
+    line-height: 1;
+    transition: opacity 0.15s;
+  }
+  .goal-item.done .goal-check-inner { opacity: 1; }
+
+  .goal-content { flex: 1; }
+  .goal-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 1px 7px;
+    border-radius: 2px;
+    margin-bottom: 3px;
+  }
+  .goal-tag.m { background: var(--math-dim); color: var(--math); }
+  .goal-tag.b { background: var(--biz-dim);  color: var(--biz); }
+  .goal-tag.e { background: var(--eco-dim);  color: var(--eco); }
+  .goal-text {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+  }
+  .goal-item.done .goal-text {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  /* ── EXAM BADGE IN WEEK ── */
+  .exam-alert {
+    margin-top: 12px;
+    background: linear-gradient(90deg, var(--math-glow) 0%, transparent 100%);
+    border: 1px solid rgba(232,69,90,0.25);
+    border-radius: 4px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--math);
+    letter-spacing: 1px;
+  }
+
+  /* ── TIMETABLE TAB ── */
+  .exam-list { display: flex; flex-direction: column; gap: 0; }
+
+  .phase-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dimmed);
+    padding: 16px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .phase-header::after { content:''; flex:1; height:1px; background:var(--border); }
+  .phase-header:first-child { padding-top: 0; }
+
+  .exam-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    transition: border-color 0.2s;
+  }
+  .exam-row:hover { border-color: var(--border2); }
+
+  .exam-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--dimmed);
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .exam-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .exam-dot.m { background: var(--math); box-shadow: 0 0 6px var(--math); }
+  .exam-dot.b { background: var(--biz);  box-shadow: 0 0 6px var(--biz); }
+  .exam-dot.e { background: var(--eco);  box-shadow: 0 0 6px var(--eco); }
+
+  .exam-info { flex: 1; }
+  .exam-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .exam-code { font-family: 'DM Mono', monospace; font-size: 9.5px; color: var(--muted); letter-spacing: 1px; }
+
+  .exam-date-block { text-align: right; flex-shrink: 0; }
+  .exam-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+  .exam-date.m { color: var(--math); }
+  .exam-date.b { color: var(--biz); }
+  .exam-date.e { color: var(--eco); }
+  .exam-level {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .exam-level.a2 { color: var(--offwhite); }
+
+  .countdown-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 1px;
+  }
+  .countdown-tag.urgent { background: var(--math-dim); color: var(--math); border: 1px solid var(--math-mid); }
+  .countdown-tag.soon   { background: #1a1a0a; color: #c8a830; border: 1px solid #4a3a10; }
+  .countdown-tag.later  { background: var(--eco-dim); color: var(--eco); border: 1px solid var(--eco-mid); }
+
+  /* ── STATS TAB ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat-value.math { color: var(--math); }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--math); color: var(--math); }
+
+  /* ── CONFETTI BURST ── */
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(60px) rotate(720deg); opacity: 0; }
+  }
+  .confetti-piece {
+    position: fixed;
+    width: 6px; height: 6px;
+    border-radius: 1px;
+    pointer-events: none;
+    animation: confetti-fall 0.8s ease-out forwards;
+    z-index: 999;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: calc(var(--safe-bottom) + 24px);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 998;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── WEEK COMPLETE BANNER ── */
+  .week-complete-banner {
+    background: linear-gradient(90deg, rgba(61,186,126,0.08) 0%, transparent 100%);
+    border: 1px solid rgba(61,186,126,0.2);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--eco);
+    letter-spacing: 1px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  .week-complete-banner.show { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>STUDY COMMAND</h1>
+    <p>Edexcel IAL · Year 13 · 2025–26</p>
+  </div>
+  <div class="topbar-right">
+    <div class="pills">
+      <span class="pill m">Maths</span>
+      <span class="pill b">Business</span>
+      <span class="pill e">Economics</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchTab('planner')">Planner</button>
+  <button class="nav-btn" onclick="switchTab('timetable')">Timetable</button>
+  <button class="nav-btn" onclick="switchTab('stats')">Progress</button>
+</nav>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ══ PLANNER TAB ══ -->
+  <div class="tab-panel active" id="tab-planner">
+
+    <div class="focus-banner">
+      <span class="icon">⚡</span>
+      <p><strong>CURRENT FOCUS — MATHS AS</strong><br>
+      P1 on <strong>8 May</strong> · P2 on <strong>12 May</strong> · S1 on <strong>19 May</strong><br>
+      Strategy: full topic sweep → past paper drills → cram week before each exam.</p>
+    </div>
+
+    <!-- PROGRESS OVERVIEW -->
+    <div class="sec-label">Overall Progress</div>
+    <div class="progress-overview">
+      <div class="prog-card m">
+        <div class="prog-label">Maths Goals</div>
+        <div class="prog-fraction" id="prog-m-frac">0/0</div>
+        <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-m-bar" style="width:0%"></div></div>
+        <div class="prog-sub" id="prog-m-sub">0% complete</div>
+      </div>
+      <div class="prog-card b">
+        <div class="prog-label">Business Goals</div>
+        <div class="prog-fraction" id="prog-b-frac">0/0</div>
+        <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-b-bar" style="width:0%"></div></div>
+        <div class="prog-sub" id="prog-b-sub">0% complete</div>
+      </div>
+      <div class="prog-card e">
+        <div class="prog-label">Economics Goals</div>
+        <div class="prog-fraction" id="prog-e-frac">0/0</div>
+        <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-e-bar" style="width:0%"></div></div>
+        <div class="prog-sub" id="prog-e-sub">0% complete</div>
+      </div>
+    </div>
+
+    <div class="sec-label">Weekly Goals — Apr to May 2026</div>
+
+    <!-- WEEK CARDS injected by JS -->
+    <div id="weeks-container"></div>
+
+  </div>
+
+  <!-- ══ TIMETABLE TAB ══ -->
+  <div class="tab-panel" id="tab-timetable">
+    <div class="sec-label">All 14 Exams — Chronological</div>
+    <div class="exam-list" id="exam-list"></div>
+  </div>
+
+  <!-- ══ STATS TAB ══ -->
+  <div class="tab-panel" id="tab-stats">
+    <div class="sec-label">Your Progress</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Goals Ticked</div>
+        <div class="stat-value math" id="stat-done">0</div>
+        <div class="stat-sub" id="stat-done-sub">of 0 total goals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Weeks Complete</div>
+        <div class="stat-value" id="stat-weeks">0</div>
+        <div class="stat-sub">of 8 weeks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Next Exam</div>
+        <div class="stat-value math" id="stat-next-days">—</div>
+        <div class="stat-sub" id="stat-next-name">Calculating...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Overall</div>
+        <div class="stat-value" id="stat-pct">0%</div>
+        <div class="stat-sub">of all goals done</div>
+      </div>
+    </div>
+
+    <div class="sec-label">Subject Breakdown</div>
+    <div id="subject-breakdown"></div>
+
+    <button class="reset-btn" onclick="confirmReset()">↺ &nbsp; Reset All Progress</button>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const WEEKS = [
+  {
+    id: 'w1',
+    label: 'WEEK 01',
+    dates: '7 Apr – 13 Apr',
+    badge: 'P1 + P2',
+    cram: false,
+    examAlert: null,
+    goals: [
+      { id:'w1g1', tag:'m', text:'P1 · Algebra & Functions — laws of indices, surds, quadratics, inequalities, factor theorem' },
+      { id:'w1g2', tag:'m', text:'P1 · Coordinate Geometry — straight lines, distance/midpoint formula, equation of circles' },
+      { id:'w1g3', tag:'m', text:'P2 · Proof — deduction, proof by exhaustion, disproof by counter-example' },
+      { id:'w1g4', tag:'m', text:'P2 · Algebra & Functions — partial fractions, modulus function, composite & inverse functions' },
+    ]
+  },
+  {
+    id: 'w2',
+    label: 'WEEK 02',
+    dates: '14 Apr – 20 Apr',
+    badge: 'P1 + P2',
+    cram: false,
+    examAlert: null,
+    goals: [
+      { id:'w2g1', tag:'m', text:'P1 · Trigonometry — CAST diagram, sin²θ+cos²θ=1, tanθ identity, solving trig equations' },
+      { id:'w2g2', tag:'m', text:'P1 · Differentiation — first principles, differentiating polynomials, tangents & normals' },
+      { id:'w2g3', tag:'m', text:'P2 · Coordinate Geometry — parametric equations, converting parametric ↔ cartesian' },
+      { id:'w2g4', tag:'m', text:'P2 · Sequences & Series — arithmetic & geometric sequences, sigma notation, binomial expansion' },
+    ]
+  },
+  {
+    id: 'w3',
+    label: 'WEEK 03',
+    dates: '21 Apr – 27 Apr',
+    badge: 'P1 · P2 · S1',
+    cram: false,
+    examAlert: null,
+    goals: [
+      { id:'w3g1', tag:'m', text:'P1 · Integration — indefinite & definite integrals, area under a curve, area between curves' },
+      { id:'w3g2', tag:'m', text:'P2 · Exponentials & Logarithms — laws of logs, e^x, ln x, solving exponential equations' },
+      { id:'w3g3', tag:'m', text:'P2 · Trigonometry — addition formulae, double angle formulae, R·sin(θ+α) form' },
+      { id:'w3g4', tag:'m', text:'S1 · Mathematical Modelling + Measures of Location & Spread (mean, median, IQR, std dev)' },
+    ]
+  },
+  {
+    id: 'w4',
+    label: 'WEEK 04',
+    dates: '28 Apr – 4 May',
+    badge: 'P2 · S1',
+    cram: false,
+    examAlert: null,
+    goals: [
+      { id:'w4g1', tag:'m', text:'P2 · Differentiation — chain rule, product rule, quotient rule, implicit differentiation' },
+      { id:'w4g2', tag:'m', text:'P2 · Integration — integration by substitution, integration by parts, trapezium rule' },
+      { id:'w4g3', tag:'m', text:'S1 · Representations of Data — histograms, cumulative frequency, box plots, outliers, skewness' },
+      { id:'w4g4', tag:'m', text:'S1 · Probability — Venn diagrams, conditional probability, independence, tree diagrams' },
+    ]
+  },
+  {
+    id: 'w5',
+    label: 'WEEK 05',
+    dates: '5 May – 8 May',
+    badge: '🔥 CRAM P1',
+    cram: true,
+    examAlert: '✦ EXAM — P1 Pure Mathematics 1 · Friday 8 May 2026',
+    goals: [
+      { id:'w5g1', tag:'m', text:'P1 · Full past paper under timed conditions — mark it, identify every weak spot' },
+      { id:'w5g2', tag:'m', text:'P1 · Second full past paper — push for full marks, review anything below 90%' },
+      { id:'w5g3', tag:'m', text:'P1 · Rapid topic drill — algebra, trig identities, differentiation, integration rules' },
+      { id:'w5g4', tag:'m', text:'P1 · Formula check — know exactly what the booklet gives you vs. what you must memorise' },
+    ]
+  },
+  {
+    id: 'w5b',
+    label: 'WEEK 05B',
+    dates: '9 May – 12 May',
+    badge: '🔥 CRAM P2',
+    cram: true,
+    examAlert: '✦ EXAM — P2 Pure Mathematics 2 · Tuesday 12 May 2026',
+    goals: [
+      { id:'w5bg1', tag:'m', text:'P2 · Full past paper under timed conditions — mark it, identify every weak spot' },
+      { id:'w5bg2', tag:'m', text:'P2 · Second full past paper — focus on logs, trig identities, integration techniques' },
+      { id:'w5bg3', tag:'m', text:'S1 · Correlation & Regression — PMCC, regression line equation, effect of coding' },
+      { id:'w5bg4', tag:'m', text:'P2 · Rapid drill — proof techniques, sequences, binomial, parametric equations' },
+    ]
+  },
+  {
+    id: 'w6',
+    label: 'WEEK 06',
+    dates: '13 May – 19 May',
+    badge: '🔥 CRAM S1',
+    cram: true,
+    examAlert: '✦ EXAM — S1 Statistics 1 · Tuesday 19 May 2026 🎉',
+    goals: [
+      { id:'w6g1', tag:'m', text:'S1 · Discrete Random Variables — E(X), Var(X), expected value & variance of functions of X' },
+      { id:'w6g2', tag:'m', text:'S1 · Normal Distribution — standardising to Z, using Z-tables, finding unknown µ and σ' },
+      { id:'w6g3', tag:'m', text:'S1 · Full past paper under timed conditions — mark it, review every lost mark' },
+      { id:'w6g4', tag:'m', text:'S1 · Second full past paper — aim for confidence on all 7 topics. You\'ve got this.' },
+    ]
+  },
+  {
+    id: 'wafter',
+    label: 'AFTER 19 MAY',
+    dates: 'Maths AS Complete ✓',
+    badge: 'Phase 2',
+    cram: false,
+    examAlert: null,
+    goals: [
+      { id:'wag1', tag:'m', text:'Take a proper rest — Maths AS is done. You earned it.' },
+      { id:'wag2', tag:'m', text:'P4 · Begin studying alongside school (just finished P3 — continue momentum)' },
+      { id:'wag3', tag:'b', text:'Business · Mind-map all Unit 1 & 2 content — then start timed essay writing practice' },
+      { id:'wag4', tag:'e', text:'Economics · Mind-map all Unit 1 & 2 content — then start timed essay writing practice' },
+    ]
+  }
+];
+
+const EXAMS = [
+  { num:'01', date:'08 MAY 2026', ts: new Date('2026-05-08'), code:'WMA11/01', name:'P1: Pure Mathematics 1',              subj:'m', level:'AS' },
+  { num:'02', date:'12 MAY 2026', ts: new Date('2026-05-12'), code:'WMA12/01', name:'P2: Pure Mathematics 2',              subj:'m', level:'AS' },
+  { num:'03', date:'19 MAY 2026', ts: new Date('2026-05-19'), code:'WST01/01', name:'S1: Statistics 1',                    subj:'m', level:'AS' },
+  { num:'04', date:'08 OCT 2026', ts: new Date('2026-10-08'), code:'WBS11/01', name:'Unit 1: Marketing & People',          subj:'b', level:'AS' },
+  { num:'05', date:'12 OCT 2026', ts: new Date('2026-10-12'), code:'WEC11/01', name:'Unit 1: Markets in Action',           subj:'e', level:'AS' },
+  { num:'06', date:'13 OCT 2026', ts: new Date('2026-10-13'), code:'WME01/01', name:'M1: Mechanics 1',                    subj:'m', level:'A2' },
+  { num:'07', date:'14 OCT 2026', ts: new Date('2026-10-14'), code:'WBS12/01', name:'Unit 2: Managing Business Activities',subj:'b', level:'AS' },
+  { num:'08', date:'16 OCT 2026', ts: new Date('2026-10-16'), code:'WEC12/01', name:'Unit 2: Macroeconomic Performance & Policy', subj:'e', level:'AS' },
+  { num:'09', date:'20 OCT 2026', ts: new Date('2026-10-20'), code:'WBS13/01', name:'Unit 3: Business Decisions & Strategy', subj:'b', level:'A2' },
+  { num:'10', date:'21 OCT 2026', ts: new Date('2026-10-21'), code:'WMA13/01', name:'P3: Pure Mathematics 3',             subj:'m', level:'A2' },
+  { num:'11', date:'23 OCT 2026', ts: new Date('2026-10-23'), code:'WEC13/01', name:'Unit 3: Business Behaviour',         subj:'e', level:'A2' },
+  { num:'12', date:'27 OCT 2026', ts: new Date('2026-10-27'), code:'WBS14/01', name:'Unit 4: Global Business',            subj:'b', level:'A2' },
+  { num:'13', date:'28 OCT 2026', ts: new Date('2026-10-28'), code:'WMA14/01', name:'P4: Pure Mathematics 4',             subj:'m', level:'A2' },
+  { num:'14', date:'30 OCT 2026', ts: new Date('2026-10-30'), code:'WEC14/01', name:'Unit 4: Developments in the Global Economy', subj:'e', level:'A2' },
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const STORAGE_KEY = 'study_command_v1';
+let state = {};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    state = saved ? JSON.parse(saved) : {};
+  } catch(e) { state = {}; }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function isGoalDone(id) { return !!state[id]; }
+
+function toggleGoal(id, el) {
+  state[id] = !state[id];
+  saveState();
+  el.classList.toggle('done', state[id]);
+  updateRing(el.closest('.week-card'));
+  updateProgress();
+  updateStats();
+
+  if (state[id]) {
+    spawnConfetti(el);
+    showToast('Goal ticked ✓');
+    checkWeekComplete(el.closest('.week-card'));
+  } else {
+    showToast('Goal unmarked');
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER WEEKS
+// ═══════════════════════════════════════════
+function renderWeeks() {
+  const container = document.getElementById('weeks-container');
+  container.innerHTML = '';
+
+  WEEKS.forEach(week => {
+    const totalGoals = week.goals.length;
+    const doneGoals = week.goals.filter(g => isGoalDone(g.id)).length;
+    const allDone = doneGoals === totalGoals;
+
+    const card = document.createElement('div');
+    card.className = 'week-card' + (week.cram ? ' cram' : '') + (allDone ? ' completed' : '');
+    card.dataset.weekId = week.id;
+
+    // Ring circumference for r=15: 2π×15 ≈ 94.25
+    const circ = 94.25;
+    const offset = circ - (doneGoals / totalGoals) * circ;
+
+    card.innerHTML = `
+      <div class="week-header" onclick="toggleWeek(this.parentElement)">
+        <div class="week-header-left">
+          <div class="week-num">${week.label}</div>
+          <div class="week-dates">${week.dates}</div>
+        </div>
+        <div class="week-header-right">
+          <div class="week-progress-ring">
+            <svg width="36" height="36" viewBox="0 0 36 36">
+              <circle class="ring-bg"   cx="18" cy="18" r="15"/>
+              <circle class="ring-fill" cx="18" cy="18" r="15"
+                stroke-dasharray="${circ}"
+                stroke-dashoffset="${offset}"
+              />
+            </svg>
+            <div class="ring-text">${doneGoals}/${totalGoals}</div>
+          </div>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="week-body">
+        ${week.goals.map(g => `
+          <div class="goal-item${isGoalDone(g.id) ? ' done' : ''}" onclick="toggleGoal('${g.id}', this)" data-goal-id="${g.id}">
+            <div class="goal-check">
+              <span class="goal-check-inner">✓</span>
+            </div>
+            <div class="goal-content">
+              <span class="goal-tag ${g.tag}">${g.tag === 'm' ? 'MATHS' : g.tag === 'b' ? 'BIZ' : 'ECO'}</span>
+              <div class="goal-text">${g.text}</div>
+            </div>
+          </div>
+        `).join('')}
+        ${week.examAlert ? `<div class="exam-alert">🔴 &nbsp;${week.examAlert}</div>` : ''}
+        <div class="week-complete-banner${allDone ? ' show' : ''}">
+          ✓ &nbsp; Week complete — well done!
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+function toggleWeek(card) {
+  card.classList.toggle('open');
+}
+
+function updateRing(card) {
+  if (!card) return;
+  const weekId = card.dataset.weekId;
+  const week = WEEKS.find(w => w.id === weekId);
+  if (!week) return;
+  const doneGoals = week.goals.filter(g => isGoalDone(g.id)).length;
+  const total = week.goals.length;
+  const circ = 94.25;
+  const offset = circ - (doneGoals / total) * circ;
+  const ring = card.querySelector('.ring-fill');
+  const text = card.querySelector('.ring-text');
+  if (ring) ring.style.strokeDashoffset = offset;
+  if (text) text.textContent = `${doneGoals}/${total}`;
+
+  const allDone = doneGoals === total;
+  card.classList.toggle('completed', allDone);
+}
+
+function checkWeekComplete(card) {
+  if (!card) return;
+  const weekId = card.dataset.weekId;
+  const week = WEEKS.find(w => w.id === weekId);
+  if (!week) return;
+  const doneGoals = week.goals.filter(g => isGoalDone(g.id)).length;
+  const allDone = doneGoals === week.goals.length;
+  const banner = card.querySelector('.week-complete-banner');
+  if (banner) banner.classList.toggle('show', allDone);
+  if (allDone) showToast('🎉 Week complete!');
+}
+
+// ═══════════════════════════════════════════
+// PROGRESS BARS
+// ═══════════════════════════════════════════
+function updateProgress() {
+  const subjects = { m: { total:0, done:0 }, b: { total:0, done:0 }, e: { total:0, done:0 } };
+  WEEKS.forEach(w => w.goals.forEach(g => {
+    subjects[g.tag].total++;
+    if (isGoalDone(g.id)) subjects[g.tag].done++;
+  }));
+
+  ['m','b','e'].forEach(s => {
+    const pct = subjects[s].total ? Math.round(subjects[s].done / subjects[s].total * 100) : 0;
+    document.getElementById(`prog-${s}-frac`).textContent = `${subjects[s].done}/${subjects[s].total}`;
+    document.getElementById(`prog-${s}-bar`).style.width = pct + '%';
+    document.getElementById(`prog-${s}-sub`).textContent = pct + '% complete';
+  });
+}
+
+// ═══════════════════════════════════════════
+// TIMETABLE
+// ═══════════════════════════════════════════
+function renderTimetable() {
+  const list = document.getElementById('exam-list');
+  list.innerHTML = '';
+
+  const now = new Date();
+
+  let lastPhase = null;
+  EXAMS.forEach(exam => {
+    const phase = exam.ts < new Date('2026-06-01') ? 'MAY 2026 · MATHS AS' : 'OCTOBER 2026 · BUSINESS · ECONOMICS · MATHS A2';
+    if (phase !== lastPhase) {
+      const ph = document.createElement('div');
+      ph.className = 'phase-header';
+      ph.textContent = phase;
+      list.appendChild(ph);
+      lastPhase = phase;
+    }
+
+    const daysLeft = Math.ceil((exam.ts - now) / (1000*60*60*24));
+    let countdownHTML = '';
+    if (daysLeft > 0 && daysLeft <= 30) {
+      countdownHTML = `<span class="countdown-tag urgent">${daysLeft}d left</span>`;
+    } else if (daysLeft > 30 && daysLeft <= 90) {
+      countdownHTML = `<span class="countdown-tag soon">${daysLeft}d</span>`;
+    } else if (daysLeft > 0) {
+      countdownHTML = `<span class="countdown-tag later">${daysLeft}d</span>`;
+    } else {
+      countdownHTML = `<span class="countdown-tag later">done</span>`;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'exam-row';
+    row.innerHTML = `
+      <div class="exam-num">${exam.num}</div>
+      <div class="exam-dot ${exam.subj}"></div>
+      <div class="exam-info">
+        <div class="exam-name">${exam.name}${countdownHTML}</div>
+        <div class="exam-code">${exam.code}</div>
+      </div>
+      <div class="exam-date-block">
+        <div class="exam-date ${exam.subj}">${exam.date}</div>
+        <div class="exam-level ${exam.level.toLowerCase()}">${exam.level}</div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function updateStats() {
+  const allGoals = WEEKS.flatMap(w => w.goals);
+  const totalDone = allGoals.filter(g => isGoalDone(g.id)).length;
+  const totalGoals = allGoals.length;
+  const pct = totalGoals ? Math.round(totalDone / totalGoals * 100) : 0;
+
+  const weeksComplete = WEEKS.filter(w =>
+    w.goals.every(g => isGoalDone(g.id))
+  ).length;
+
+  document.getElementById('stat-done').textContent = totalDone;
+  document.getElementById('stat-done-sub').textContent = `of ${totalGoals} total goals`;
+  document.getElementById('stat-weeks').textContent = weeksComplete;
+  document.getElementById('stat-pct').textContent = pct + '%';
+
+  // Next exam countdown
+  const now = new Date();
+  const next = EXAMS.find(e => e.ts > now);
+  if (next) {
+    const days = Math.ceil((next.ts - now) / (1000*60*60*24));
+    document.getElementById('stat-next-days').textContent = days + 'd';
+    document.getElementById('stat-next-name').textContent = next.name;
+  } else {
+    document.getElementById('stat-next-days').textContent = '✓';
+    document.getElementById('stat-next-name').textContent = 'All exams done!';
+  }
+
+  // Subject breakdown
+  const bd = document.getElementById('subject-breakdown');
+  const subjects = [
+    { key:'m', label:'Mathematics', color:'var(--math)' },
+    { key:'b', label:'Business',    color:'var(--biz)' },
+    { key:'e', label:'Economics',   color:'var(--eco)' },
+  ];
+  bd.innerHTML = subjects.map(s => {
+    const sGoals = WEEKS.flatMap(w => w.goals).filter(g => g.tag === s.key);
+    const sDone = sGoals.filter(g => isGoalDone(g.id)).length;
+    const sTotal = sGoals.length;
+    const sPct = sTotal ? Math.round(sDone/sTotal*100) : 0;
+    return `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:${s.color};text-transform:uppercase">${s.label}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${sDone}/${sTotal}</span>
+        </div>
+        <div style="height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${sPct}%;background:${s.color};border-radius:2px;transition:width 0.4s"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════
+function spawnConfetti(el) {
+  const rect = el.getBoundingClientRect();
+  const colors = ['#e8455a','#4a9fd8','#3dba7e','#ffffff','#c8a830'];
+  for (let i = 0; i < 8; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${rect.left + Math.random() * rect.width}px;
+      top: ${rect.top}px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay: ${Math.random()*0.2}s;
+      transform: rotate(${Math.random()*360}deg);
+    `;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 1000);
+  }
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ═══════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════
+function confirmReset() {
+  if (confirm('Reset all progress? This cannot be undone.')) {
+    state = {};
+    saveState();
+    renderWeeks();
+    updateProgress();
+    updateStats();
+    showToast('Progress reset');
+  }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+loadState();
+renderWeeks();
+renderTimetable();
+updateProgress();
+updateStats();
+
+// Auto-open current week
+const today = new Date();
+const weekRanges = [
+  { id:'w1',    start: new Date('2026-04-07'), end: new Date('2026-04-13') },
+  { id:'w2',    start: new Date('2026-04-14'), end: new Date('2026-04-20') },
+  { id:'w3',    start: new Date('2026-04-21'), end: new Date('2026-04-27') },
+  { id:'w4',    start: new Date('2026-04-28'), end: new Date('2026-05-04') },
+  { id:'w5',    start: new Date('2026-05-05'), end: new Date('2026-05-08') },
+  { id:'w5b',   start: new Date('2026-05-09'), end: new Date('2026-05-12') },
+  { id:'w6',    start: new Date('2026-05-13'), end: new Date('2026-05-19') },
+  { id:'wafter',start: new Date('2026-05-20'), end: new Date('2026-12-31') },
+];
+const currentWeek = weekRanges.find(w => today >= w.start && today <= w.end);
+if (currentWeek) {
+  const card = document.querySelector(`[data-week-id="${currentWeek.id}"]`);
+  if (card) {
+    card.classList.add('open');
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  }
+}
+</script>
+</body>
+</html>
